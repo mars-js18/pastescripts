@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Atajos de Teclado - Gestor de Productividad</title>
   <meta name="description" content="Herramienta personal para organizar y recordar tus atajos de teclado, hotkeys y combinaciones de productividad.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +11,7 @@
   
   <style>
     /* ==========================================================================
-       RESET & VARIABLES DE DISEÑO (DARK MODE GLOBAL)
+       RESET & VARIABLES DE DISEÑO (DARK MODE GLOBAL & MOBILE RESPONSIVE)
        ========================================================================== */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -53,6 +53,7 @@
       line-height: 1.5;
       min-height: 100vh;
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .hidden {
@@ -121,7 +122,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
+      padding: 0 24px;
       position: sticky;
       top: 0;
       z-index: 10;
@@ -132,6 +133,7 @@
       align-items: center;
       gap: 10px;
       cursor: pointer;
+      user-select: none;
     }
 
     .f-brand-icon {
@@ -144,6 +146,7 @@
       align-items: center;
       justify-content: center;
       font-size: 1rem;
+      flex-shrink: 0;
     }
 
     .f-brand-title {
@@ -151,6 +154,7 @@
       font-weight: 700;
       color: var(--f-text-heading);
       letter-spacing: -0.01em;
+      white-space: nowrap;
     }
 
     .f-brand-tag {
@@ -185,7 +189,7 @@
     .f-search-container {
       flex: 1;
       max-width: 420px;
-      margin: 0 32px;
+      margin: 0 24px;
       position: relative;
     }
 
@@ -220,20 +224,20 @@
       max-width: 1100px;
       width: 100%;
       margin: 0 auto;
-      padding: 36px 24px;
+      padding: 28px 20px;
     }
 
     .f-hero {
       background-color: var(--f-surface);
       border: 1px solid var(--f-border);
       border-radius: 10px;
-      padding: 28px;
-      margin-bottom: 32px;
+      padding: 24px;
+      margin-bottom: 28px;
       box-shadow: var(--f-shadow);
     }
 
     .f-hero-title {
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: var(--f-text-heading);
       margin-bottom: 6px;
@@ -242,7 +246,7 @@
     .f-hero-desc {
       font-size: 0.875rem;
       color: var(--f-text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .f-add-box {
@@ -289,7 +293,7 @@
     }
 
     .f-section-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--f-text-heading);
       margin-bottom: 16px;
@@ -300,19 +304,19 @@
 
     .f-shortcuts-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
     }
 
     .f-shortcut-card {
       background-color: var(--f-surface);
       border: 1px solid var(--f-border);
       border-radius: 8px;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 14px;
+      gap: 12px;
       transition: border-color 0.15s ease;
     }
 
@@ -328,7 +332,7 @@
     }
 
     .f-shortcut-desc {
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: var(--f-text-main);
       line-height: 1.4;
     }
@@ -347,7 +351,7 @@
       background: var(--f-surface-hover);
       border: 1px solid var(--f-border);
       color: var(--f-text-main);
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 5px;
       font-size: 0.75rem;
       cursor: pointer;
@@ -360,27 +364,31 @@
 
     .f-footer {
       text-align: center;
-      padding: 20px;
+      padding: 18px 16px;
       font-size: 0.8rem;
       color: var(--f-text-muted);
       border-top: 1px solid var(--f-border);
       background: var(--f-surface);
       margin-top: auto;
+      user-select: none;
     }
 
     .f-footer-version {
       cursor: pointer;
       user-select: none;
+      display: inline-block;
+      padding: 4px 8px;
     }
 
 
     /* ==========================================================================
-       2. VISTA DE LA BIBLIOTECA OCULTA (Modo Secreto / Dark Mode)
+       2. VISTA DE LA BIBLIOTECA OCULTA (MODO SECRETO / RESPONSIVE)
        ========================================================================== */
     .stealth-layout {
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: 100dvh; /* Soporte dinámico para navegadores móviles */
       background-color: var(--s-bg);
       color: var(--s-text-main);
       overflow: hidden;
@@ -389,13 +397,15 @@
     .s-header {
       background-color: var(--s-surface);
       border-bottom: 1px solid var(--s-border);
-      height: 56px;
+      min-height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
+      padding: 8px 16px;
+      gap: 10px;
       z-index: 20;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     .s-brand {
@@ -403,22 +413,23 @@
       align-items: center;
       gap: 10px;
       font-family: var(--s-mono-font);
-      font-size: 0.875rem;
+      font-size: 0.85rem;
     }
 
     .s-brand-tag {
       background: var(--s-accent-subtle);
       color: var(--s-accent);
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 4px;
       font-weight: 600;
       border: 1px solid rgba(59, 130, 246, 0.2);
+      white-space: nowrap;
     }
 
     .s-view-tabs {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       background: var(--s-bg);
       padding: 3px;
       border-radius: 6px;
@@ -429,12 +440,13 @@
       background: transparent;
       border: none;
       color: var(--s-text-muted);
-      padding: 5px 12px;
+      padding: 6px 10px;
       border-radius: 4px;
       font-size: 0.78rem;
       font-family: var(--s-mono-font);
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .s-tab-btn:hover {
@@ -450,19 +462,19 @@
     .s-controls {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .s-search-input {
       background-color: var(--s-bg);
       border: 1px solid var(--s-border);
       color: var(--s-text-main);
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 0.8rem;
       font-family: var(--s-mono-font);
       outline: none;
-      width: 180px;
+      width: 140px;
     }
 
     .s-search-input:focus {
@@ -473,7 +485,7 @@
       background: var(--s-surface);
       border: 1px solid var(--s-border);
       color: var(--s-text-main);
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 6px;
       font-size: 0.8rem;
       font-weight: 500;
@@ -483,6 +495,7 @@
       gap: 6px;
       transition: all 0.15s ease;
       font-family: inherit;
+      white-space: nowrap;
     }
 
     .s-btn:hover {
@@ -494,6 +507,7 @@
       background-color: #991b1b;
       border-color: #b91c1c;
       color: #fef2f2;
+      font-weight: 600;
     }
 
     .s-btn-panic:hover {
@@ -504,14 +518,15 @@
       display: flex;
       flex: 1;
       height: calc(100vh - 56px);
+      height: calc(100dvh - 56px);
       overflow: hidden;
     }
 
     .s-sidebar {
-      width: 260px;
+      width: 250px;
       background-color: var(--s-surface);
       border-right: 1px solid var(--s-border);
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -525,7 +540,7 @@
       text-transform: uppercase;
       color: var(--s-text-muted);
       letter-spacing: 0.08em;
-      padding: 4px 8px 12px 8px;
+      padding: 4px 6px 10px 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -541,7 +556,7 @@
       background: transparent;
       border: 1px solid transparent;
       color: var(--s-text-muted);
-      padding: 9px 12px;
+      padding: 9px 10px;
       border-radius: 6px;
       text-align: left;
       font-size: 0.82rem;
@@ -567,11 +582,12 @@
 
     .s-content {
       flex: 1;
-      padding: 28px 36px;
+      padding: 24px;
       max-width: 1000px;
       margin: 0 auto;
       width: 100%;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .s-iframe-container {
@@ -580,6 +596,7 @@
       height: 100%;
       background: #ffffff;
       border: none;
+      -webkit-overflow-scrolling: touch;
     }
 
     .s-iframe-elem {
@@ -592,27 +609,28 @@
       background-color: var(--s-surface);
       border: 1px solid var(--s-border);
       border-radius: 8px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       overflow: hidden;
     }
 
     .s-snippet-header {
       background-color: rgba(255, 255, 255, 0.02);
       border-bottom: 1px solid var(--s-border);
-      padding: 12px 18px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
     }
 
     .s-snippet-title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: 600;
       font-family: var(--s-mono-font);
       color: var(--s-text-main);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .s-snippet-title::before {
@@ -624,7 +642,7 @@
       background-color: #1f2937;
       border: 1px solid #374151;
       color: #e5e7eb;
-      padding: 5px 12px;
+      padding: 6px 10px;
       border-radius: 5px;
       font-size: 0.75rem;
       font-family: var(--s-mono-font);
@@ -633,6 +651,7 @@
       align-items: center;
       gap: 6px;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .s-btn-copy-notepad:hover {
@@ -643,15 +662,16 @@
 
     .s-notepad-pre {
       font-family: var(--s-mono-font);
-      font-size: 0.85rem;
+      font-size: 0.825rem;
       line-height: 1.6;
       color: #e5e7eb;
-      padding: 18px;
+      padding: 14px;
       white-space: pre-wrap;
       word-break: break-word;
       background-color: #0d1117;
       overflow-x: auto;
       border: none;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* Modal Gist */
@@ -666,6 +686,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 16px;
       z-index: 9000;
     }
 
@@ -674,13 +695,13 @@
       border: 1px solid var(--s-border);
       border-radius: 10px;
       width: 100%;
-      max-width: 560px;
-      padding: 24px;
+      max-width: 520px;
+      padding: 20px;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     }
 
     .s-modal-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       margin-bottom: 8px;
       font-family: var(--s-mono-font);
@@ -690,14 +711,14 @@
     }
 
     .s-modal-desc {
-      font-size: 0.825rem;
+      font-size: 0.8rem;
       color: var(--s-text-muted);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       line-height: 1.5;
     }
 
     .s-input-group {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .s-label {
@@ -728,7 +749,117 @@
       display: flex;
       justify-content: flex-end;
       gap: 10px;
-      margin-top: 24px;
+      margin-top: 20px;
+    }
+
+    /* ==========================================================================
+       MEDIA QUERIES PARA ADAPTACIÓN A CELULARES (PANTALLAS PEQUEÑAS)
+       ========================================================================== */
+    @media (max-width: 768px) {
+      .f-header {
+        padding: 0 14px;
+      }
+
+      .f-brand-title {
+        font-size: 0.95rem;
+      }
+
+      .f-brand-tag {
+        display: none;
+      }
+
+      .f-nav-links {
+        display: none; /* Ocultar enlaces secundarios en móvil para dejar espacio al buscador */
+      }
+
+      .f-search-container {
+        margin: 0 10px;
+      }
+
+      .f-main {
+        padding: 16px 12px;
+      }
+
+      .f-hero {
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+
+      .f-add-box {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .f-btn-primary {
+        width: 100%;
+      }
+
+      .f-shortcuts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      /* Ajustes del Modo Secreto en Celular */
+      .s-header {
+        padding: 8px 12px;
+        gap: 6px;
+      }
+
+      .s-brand-tag {
+        font-size: 0.75rem;
+      }
+
+      .s-search-input {
+        width: 110px;
+      }
+
+      .s-body {
+        flex-direction: column;
+      }
+
+      .s-notes-wrapper-mobile {
+        flex-direction: column !important;
+      }
+
+      /* La barra lateral en móvil se vuelve una lista horizontal deslizable arriba */
+      .s-sidebar {
+        width: 100%;
+        max-height: 120px;
+        border-right: none;
+        border-bottom: 1px solid var(--s-border);
+        padding: 10px;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+
+      .s-sidebar-header {
+        display: none;
+      }
+
+      .s-note-nav {
+        flex-direction: row;
+        gap: 6px;
+      }
+
+      .s-nav-btn {
+        padding: 6px 12px;
+        font-size: 0.78rem;
+      }
+
+      .s-content {
+        padding: 14px;
+      }
+
+      .s-snippet-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .s-btn-copy-notepad {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
@@ -746,7 +877,7 @@
   <div id="facade-view" class="facade-layout">
     
     <header class="f-header">
-      <div class="f-brand" id="f-logo-click">
+      <div class="f-brand" id="f-logo-click" title="Mantén presionado o da 3 clics para acceder">
         <div class="f-brand-icon">⌨️</div>
         <span class="f-brand-title">Atajos de Teclado</span>
         <span class="f-brand-tag">v1.4.2</span>
@@ -756,7 +887,7 @@
         <svg class="f-search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
         </svg>
-        <input type="text" id="f-search-input" class="f-search-input" placeholder="Buscar atajo o combinación (ej. Ctrl+Shift+T)...">
+        <input type="text" id="f-search-input" class="f-search-input" placeholder="Buscar atajo...">
       </div>
 
       <nav class="f-nav-links">
@@ -768,14 +899,14 @@
 
     <main class="f-main">
       <div class="f-hero">
-        <h1 class="f-hero-title">Atajos de Teclado — Recordatorio y Productividad</h1>
+        <h1 class="f-hero-title">Atajos de Teclado — Productividad</h1>
         <p class="f-hero-desc">
-          Guarda y consulta rápidamente tus combinaciones de teclas favoritas para mejorar tu velocidad diaria.
+          Guarda y consulta tus combinaciones de teclas favoritas para mejorar tu velocidad diaria.
         </p>
 
         <div class="f-add-box">
           <input type="text" id="f-key-input" class="f-input" placeholder="Teclas (ej. Ctrl + Shift + T)">
-          <input type="text" id="f-desc-input" class="f-input" placeholder="Descripción de la función o acción...">
+          <input type="text" id="f-desc-input" class="f-input" placeholder="Descripción de la función...">
           <button class="f-btn-primary" id="f-btn-add-shortcut">+ Agregar Atajo</button>
         </div>
       </div>
@@ -791,7 +922,7 @@
     </main>
 
     <footer class="f-footer">
-      <span>Atajos de Teclado © 2026 — Organizador personal de hotkeys y accesos rápidos. </span>
+      <span>Atajos de Teclado © 2026 — Accesos rápidos. </span>
       <span class="f-footer-version" id="f-version-trigger">v1.4.2 (Stable)</span>
     </footer>
   </div>
@@ -808,20 +939,20 @@
       </div>
 
       <div class="s-view-tabs">
-        <button class="s-tab-btn active" id="tab-btn-book">📖 Think Java 2e (Web)</button>
-        <button class="s-tab-btn" id="tab-btn-notes">📝 Mis Apuntes (Notepad)</button>
+        <button class="s-tab-btn active" id="tab-btn-book">📖 Think Java 2e</button>
+        <button class="s-tab-btn" id="tab-btn-notes">📝 Apuntes</button>
       </div>
 
       <div class="s-controls">
-        <input type="text" id="s-search-input" class="s-search-input hidden" placeholder="Filtrar notas...">
-        <button class="s-btn" id="s-btn-gist-config" title="Cambiar URL de Gist o archivo de notas">
+        <input type="text" id="s-search-input" class="s-search-input hidden" placeholder="Filtrar...">
+        <button class="s-btn" id="s-btn-gist-config" title="Cambiar URL de Gist o libro">
           <span>⚙️ Config</span>
         </button>
-        <button class="s-btn" id="s-btn-refresh" title="Recargar libro o notas">
-          <span>🔄 Recargar</span>
+        <button class="s-btn" id="s-btn-refresh" title="Recargar">
+          <span>🔄</span>
         </button>
-        <button class="s-btn s-btn-panic" id="s-btn-panic" title="Volver inmediatamente a la fachada (Esc)">
-          <span>🚨 PÁNICO (Esc)</span>
+        <button class="s-btn s-btn-panic" id="s-btn-panic" title="Volver inmediatamente a la fachada (Esc / Tap)">
+          <span>🚨 PÁNICO</span>
         </button>
       </div>
     </header>
@@ -832,10 +963,10 @@
       </div>
     </div>
 
-    <div id="s-notes-wrapper" class="s-body hidden">
+    <div id="s-notes-wrapper" class="s-body hidden s-notes-wrapper-mobile">
       <aside class="s-sidebar">
         <div class="s-sidebar-header">
-          <span>Capítulos / Apuntes</span>
+          <span>Capítulos</span>
           <span id="s-docs-count">0</span>
         </div>
         <div class="s-note-nav" id="s-note-nav">
@@ -876,7 +1007,7 @@
   </div>
 
 
-  <!-- LOGICA JAVASCRIPT (VANILLA ES6) -->
+  <!-- LOGICA JAVASCRIPT (VANILLA ES6 + GESTOS TÁCTILES MÓVILES) -->
   <script>
     (function () {
       'use strict';
@@ -936,6 +1067,7 @@
       let bufferTimeout = null;
       let versionClicks = 0;
       let versionClickTimeout = null;
+      let touchPressTimer = null; // Para toque prolongado en celular
 
       let facadeShortcuts = JSON.parse(localStorage.getItem('keybind_shortcuts_list')) || INITIAL_SHORTCUTS;
 
@@ -952,6 +1084,7 @@
       const toast = document.getElementById('toast');
       const toastMessage = document.getElementById('toast-message');
 
+      const fLogoClick = document.getElementById('f-logo-click');
       const fSearchInput = document.getElementById('f-search-input');
       const fShortcutsContainer = document.getElementById('f-shortcuts-container');
       const fCountLabel = document.getElementById('f-count-label');
@@ -1104,14 +1237,13 @@
       });
 
       /* ----------------------------------------------------------------------
-         7. ACTIVACIÓN SECRETA & BOTÓN DE PÁNICO
+         7. ACTIVACIÓN SECRETA Y DISPARADORES PARA CELULAR / MÓVIL
          ---------------------------------------------------------------------- */
       function activateStealthMode() {
         if (isStealthActive) return;
         isStealthActive = true;
         facadeView.classList.add('hidden');
         stealthView.classList.remove('hidden');
-        // El título de la pestaña PERMANECE SIEMPRE IGUAL para no delatar cambios de pestaña
         document.title = 'Atajos de Teclado - Gestor de Productividad';
         sBookIframe.src = bookUrl;
         fetchGistData();
@@ -1127,6 +1259,7 @@
         keySequenceBuffer = '';
       }
 
+      // Teclado Físico (Esc, open123, Ctrl+Shift+X)
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           deactivateStealthMode();
@@ -1157,11 +1290,37 @@
         }
       });
 
+      // DISPARADORES TÁCTILES MÓVILES (Presión prolongada o 3 clics)
+      function handleTouchStart() {
+        touchPressTimer = setTimeout(() => {
+          activateStealthMode();
+          showToast('Modo Secreto Activado');
+        }, 1200); // 1.2 segundos presionando el logo abre la sección secreta en celular
+      }
+
+      function handleTouchEnd() {
+        clearTimeout(touchPressTimer);
+      }
+
+      fLogoClick.addEventListener('touchstart', handleTouchStart, { passive: true });
+      fLogoClick.addEventListener('touchend', handleTouchEnd);
+      fLogoClick.addEventListener('touchcancel', handleTouchEnd);
+
+      // Clics rápidos (para escritorio o móvil)
+      fLogoClick.addEventListener('click', () => {
+        versionClicks++;
+        clearTimeout(versionClickTimeout);
+        versionClickTimeout = setTimeout(() => { versionClicks = 0; }, 1200);
+        if (versionClicks >= 3) {
+          versionClicks = 0;
+          activateStealthMode();
+        }
+      });
+
       fVersionTrigger.addEventListener('click', () => {
         versionClicks++;
         clearTimeout(versionClickTimeout);
         versionClickTimeout = setTimeout(() => { versionClicks = 0; }, 1200);
-
         if (versionClicks >= 3) {
           versionClicks = 0;
           activateStealthMode();
@@ -1298,9 +1457,9 @@
         const q = searchQuery.toLowerCase();
 
         const noteHeader = document.createElement('div');
-        noteHeader.style.marginBottom = '24px';
+        noteHeader.style.marginBottom = '20px';
         noteHeader.innerHTML = `
-          <h2 style="font-family: var(--s-mono-font); font-size: 1.3rem; color: #ffffff; margin-bottom: 6px;">
+          <h2 style="font-family: var(--s-mono-font); font-size: 1.15rem; color: #ffffff; margin-bottom: 4px;">
             ${escapeHTML(currentNote.title)}
           </h2>
           <div style="font-size: 0.75rem; color: var(--s-text-muted); font-family: var(--s-mono-font);">
