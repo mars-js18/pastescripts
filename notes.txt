@@ -1,0 +1,27 @@
+# 📘 Apuntes de Estudio - Tema 1: Redes y Sistemas
+1. Comandos de verificación de conectividad:
+   - ping 8.8.8.8 -t
+   - tracert google.com
+   - netstat -ano | findstr :80
+
+2. Puertos estándar:
+   - 22: SSH
+   - 80: HTTP
+   - 443: HTTPS
+   - 3306: MySQL
+
+---
+
+# 📗 Tema 2: Consultas SQL y Comandos Útiles
+SELECT id, nombre, email, fecha_creacion
+FROM usuarios
+WHERE estado = 'ACTIVO'
+ORDER BY fecha_creacion DESC;
+
+---
+
+# 📙 Tema 3: Notas de Productividad y Procedimientos
+Procedimiento de respaldo semanal:
+1. Crear snapshot del servidor.
+2. Ejecutar script de exportación de base de datos.
+3. Notificar al equipo de operaciones.
