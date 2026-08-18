@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KeyBind Notes - Gestor de Atajos de Teclado y Productividad</title>
+  <title>Atajos de Teclado - Gestor de Productividad</title>
   <meta name="description" content="Herramienta personal para organizar y recordar tus atajos de teclado, hotkeys y combinaciones de productividad.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +20,7 @@
     }
 
     :root {
-      /* Estilos Dark Mode Fachada (KeyBind Notes) */
+      /* Estilos Dark Mode Fachada (Atajos de Teclado) */
       --f-bg: #0f172a;
       --f-surface: #1e293b;
       --f-surface-hover: #334155;
@@ -106,7 +106,7 @@
     }
 
     /* ==========================================================================
-       1. VISTA DE LA FACHADA: "KEYBIND NOTES" (GESTOR DE ATAJOS DE TECLADO)
+       1. VISTA DE LA FACHADA: "ATAJOS DE TECLADO"
        ========================================================================== */
     .facade-layout {
       display: flex;
@@ -574,7 +574,6 @@
       overflow-y: auto;
     }
 
-    /* Visor Web Iframe Sigiloso */
     .s-iframe-container {
       flex: 1;
       width: 100%;
@@ -742,14 +741,14 @@
   </div>
 
   <!-- ==========================================================================
-       1. FACHADA NORMAL: "KEYBIND NOTES" (GESTOR DE ATAJOS DE TECLADO)
+       1. FACHADA NORMAL: "ATAJOS DE TECLADO"
        ========================================================================== -->
   <div id="facade-view" class="facade-layout">
     
     <header class="f-header">
       <div class="f-brand" id="f-logo-click">
         <div class="f-brand-icon">⌨️</div>
-        <span class="f-brand-title">KeyBind Notes</span>
+        <span class="f-brand-title">Atajos de Teclado</span>
         <span class="f-brand-tag">v1.4.2</span>
       </div>
 
@@ -769,9 +768,9 @@
 
     <main class="f-main">
       <div class="f-hero">
-        <h1 class="f-hero-title">KeyBind Notes — Recordatorio de Atajos de Teclado</h1>
+        <h1 class="f-hero-title">Atajos de Teclado — Recordatorio y Productividad</h1>
         <p class="f-hero-desc">
-          Guarda y consulta rápidamente tus combinaciones de teclas favoritas para mejorar tu velocidad y productividad diaria.
+          Guarda y consulta rápidamente tus combinaciones de teclas favoritas para mejorar tu velocidad diaria.
         </p>
 
         <div class="f-add-box">
@@ -792,7 +791,7 @@
     </main>
 
     <footer class="f-footer">
-      <span>KeyBind Notes © 2026 — Organizador personal de hotkeys y accesos rápidos. </span>
+      <span>Atajos de Teclado © 2026 — Organizador personal de hotkeys y accesos rápidos. </span>
       <span class="f-footer-version" id="f-version-trigger">v1.4.2 (Stable)</span>
     </footer>
   </div>
@@ -808,7 +807,6 @@
         <span class="s-brand-tag">STEALTH ARCHIVE</span>
       </div>
 
-      <!-- Selector de Modo: Visor Web de Libro vs Apuntes/Notepad -->
       <div class="s-view-tabs">
         <button class="s-tab-btn active" id="tab-btn-book">📖 Think Java 2e (Web)</button>
         <button class="s-tab-btn" id="tab-btn-notes">📝 Mis Apuntes (Notepad)</button>
@@ -828,14 +826,12 @@
       </div>
     </header>
 
-    <!-- Contenido en Modo Visor Web Iframe (Think Java 2e) -->
     <div id="s-book-wrapper" class="s-body">
       <div class="s-iframe-container">
         <iframe id="s-book-iframe" class="s-iframe-elem" src="https://chrismayfield.github.io/ThinkJava2/"></iframe>
       </div>
     </div>
 
-    <!-- Contenido en Modo Apuntes/Notepad (Cargados de notes.txt o Gist) -->
     <div id="s-notes-wrapper" class="s-body hidden">
       <aside class="s-sidebar">
         <div class="s-sidebar-header">
@@ -934,17 +930,15 @@
          3. ESTADO DE LA APLICACIÓN
          ---------------------------------------------------------------------- */
       let isStealthActive = false;
-      let activeStealthTab = 'book'; // 'book' o 'notes'
+      let activeStealthTab = 'book';
       let keySequenceBuffer = '';
       const SECRET_KEYWORD = 'open123';
       let bufferTimeout = null;
       let versionClicks = 0;
       let versionClickTimeout = null;
 
-      // Atajos de la fachada almacenados localmente
       let facadeShortcuts = JSON.parse(localStorage.getItem('keybind_shortcuts_list')) || INITIAL_SHORTCUTS;
 
-      // Estado de datos secretos
       let loadedNotes = [];
       let activeNoteIndex = 0;
       let bookUrl = localStorage.getItem('stealth_book_url') || 'https://chrismayfield.github.io/ThinkJava2/';
@@ -958,7 +952,6 @@
       const toast = document.getElementById('toast');
       const toastMessage = document.getElementById('toast-message');
 
-      // Elementos de Fachada
       const fSearchInput = document.getElementById('f-search-input');
       const fShortcutsContainer = document.getElementById('f-shortcuts-container');
       const fCountLabel = document.getElementById('f-count-label');
@@ -967,7 +960,6 @@
       const fBtnAddShortcut = document.getElementById('f-btn-add-shortcut');
       const fVersionTrigger = document.getElementById('f-version-trigger');
 
-      // Elementos del Modo Secreto
       const sSearchInput = document.getElementById('s-search-input');
       const sNoteNav = document.getElementById('s-note-nav');
       const sContentArea = document.getElementById('s-content-area');
@@ -982,7 +974,6 @@
       const sNotesWrapper = document.getElementById('s-notes-wrapper');
       const sBookIframe = document.getElementById('s-book-iframe');
 
-      // Modal
       const sGistModal = document.getElementById('s-gist-modal');
       const bookUrlInput = document.getElementById('book-url-input');
       const gistUrlInput = document.getElementById('gist-url-input');
@@ -1121,10 +1112,7 @@
         facadeView.classList.add('hidden');
         stealthView.classList.remove('hidden');
         document.title = 'System Monitor';
-
-        // Asegurar que el iframe tenga la URL del libro
         sBookIframe.src = bookUrl;
-        
         fetchGistData();
       }
 
@@ -1133,12 +1121,11 @@
         stealthView.classList.add('hidden');
         facadeView.classList.remove('hidden');
         sGistModal.classList.add('hidden');
-        document.title = 'KeyBind Notes - Gestor de Atajos de Teclado y Productividad';
+        document.title = 'Atajos de Teclado - Gestor de Productividad';
         sSearchInput.value = '';
         keySequenceBuffer = '';
       }
 
-      // Teclas de acceso (Esc, open123, Ctrl+Shift+X)
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           deactivateStealthMode();
@@ -1183,7 +1170,7 @@
       sBtnPanic.addEventListener('click', deactivateStealthMode);
 
       /* ----------------------------------------------------------------------
-         8. PESTAÑAS DE VISTA SECRETA (LIBRO WEB vs APUNTES)
+         8. PESTAÑAS DE VISTA SECRETA
          ---------------------------------------------------------------------- */
       tabBtnBook.addEventListener('click', () => {
         activeStealthTab = 'book';
