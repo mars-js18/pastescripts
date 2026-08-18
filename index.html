@@ -804,7 +804,7 @@
     
     <header class="s-header">
       <div class="s-brand">
-        <span class="s-brand-tag">STEALTH ARCHIVE</span>
+        <span class="s-brand-tag">⌨️ Atajos de Teclado</span>
       </div>
 
       <div class="s-view-tabs">
@@ -1111,7 +1111,8 @@
         isStealthActive = true;
         facadeView.classList.add('hidden');
         stealthView.classList.remove('hidden');
-        document.title = 'System Monitor';
+        // El título de la pestaña PERMANECE SIEMPRE IGUAL para no delatar cambios de pestaña
+        document.title = 'Atajos de Teclado - Gestor de Productividad';
         sBookIframe.src = bookUrl;
         fetchGistData();
       }
