@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Console Diagnostics - Internal Network Latency Monitor v4.8</title>
+  <style>
+    /* ==========================================================================
+       RESET & BASE STYLES
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f4f6f8;
+      color: #333333;
+      font-size: 13px;
+      line-height: 1.4;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       1. FACHADA CORPORATIVA (MODO NORMAL)
+       ========================================================================== */
+    #corporate-facade {
+      display: block;
+      width: 100vw;
+      min-height: 100vh;
+      background: #f4f6f9;
+    }
+
+    /* Corporate Header */
+    .corp-header {
+      background-color: #1e293b;
+      color: #ffffff;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #0284c7;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+
+    .corp-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .corp-icon {
+      width: 24px;
+      height: 24px;
+      fill: #38bdf8;
+    }
+
+    .corp-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #f8fafc;
+    }
+
+    .corp-subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .corp-status-badge {
+      background-color: #059669;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #6ee7b7;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Main Corporate Dashboard Layout */
+    .corp-container {
+      max-width: 1400px;
+      margin: 20px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+    }
+
+    .corp-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .corp-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Sidebar info */
+    .corp-meta-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px dashed #f1f5f9;
+    }
+
+    .corp-meta-label { color: #64748b; }
+    .corp-meta-val { font-weight: 600; color: #1e293b; font-family: monospace; }
+
+    /* Latency Chart */
+    .chart-container {
+      position: relative;
+      height: 180px;
+      width: 100%;
+      background: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    canvas#latencyCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Logs Table */
+    .logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+    }
+
+    .logs-table th {
+      background: #f8fafc;
+      color: #64748b;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+      font-family: -apple-system, sans-serif;
+    }
+
+    .logs-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    .log-time { color: #64748b; }
+    .log-level-info { color: #0284c7; font-weight: bold; }
+    .log-level-trace { color: #64748b; }
+    .log-level-ok { color: #16a34a; font-weight: bold; }
+    .log-node { color: #7c3aed; }
+
+    .corp-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .corp-input {
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 12px;
+      width: 220px;
+      outline: none;
+    }
+
+    .corp-btn {
+      background: #e2e8f0;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: default;
+    }
+
+    .corp-btn:hover {
+      background: #cbd5e1;
+    }
+
+    /* Floating Panic Hint (Only visible to owner, subtle) */
+    .stealth-hint {
+      position: fixed;
+      bottom: 6px;
+      right: 12px;
+      font-size: 10px;
+      color: #cbd5e1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* ==========================================================================
+       2. LA BIBLIOTECA OCULTA (MODO SECRETO / DARK MODE)
+       ========================================================================== */
+    #secret-library {
+      display: none; /* Hidden by default */
+      width: 100vw;
+      min-height: 100vh;
+      background-color: #090d16;
+      color: #e2e8f0;
+      font-family: "JetBrains Mono", "Fira Code", Consolas, Monaco, "Courier New", monospace;
+    }
+
+    .secret-layout {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Secret Sidebar */
+    .secret-sidebar {
+      width: 280px;
+      background: #0f172a;
+      border-right: 1px solid #1e293b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .secret-header {
+      padding: 16px;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0b1120;
+    }
+
+    .secret-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panic-badge {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid #ef4444;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .secret-search-box {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .secret-search-input {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .secret-search-input:focus {
+      border-color: #38bdf8;
+    }
+
+    .secret-nav-list {
+      list-style: none;
+      overflow-y: auto;
+      flex: 1;
+      padding: 8px 0;
+    }
+
+    .secret-nav-item {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-left: 3px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .secret-nav-item:hover {
+      background: #1e293b;
+      color: #f1f5f9;
+    }
+
+    .secret-nav-item.active {
+      background: #1e293b;
+      color: #38bdf8;
+      border-left-color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .item-count-badge {
+      background: #334155;
+      color: #cbd5e1;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .secret-sidebar-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #1e293b;
+      font-size: 11px;
+      color: #64748b;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #0b1120;
+    }
+
+    .gist-status-link {
+      color: #38bdf8;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .gist-status-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Secret Main Content Area */
+    .secret-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #090d16;
+      overflow: hidden;
+    }
+
+    .secret-topbar {
+      padding: 14px 24px;
+      border-bottom: 1px solid #1e293b;
+      background: #0b1120;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .current-category-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .action-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+    }
+
+    .action-btn:hover {
+      background: #334155;
+      color: #ffffff;
+    }
+
+    .action-btn-primary {
+      background: #0284c7;
+      border-color: #0369a1;
+      color: #ffffff;
+    }
+    .action-btn-primary:hover {
+      background: #0369a1;
+    }
+
+    /* Content Area Scrollable */
+    .secret-content-body {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Snippet Box */
+    .snippet-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .snippet-card-header {
+      background: #1e293b;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+
+    .snippet-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .copy-btn {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #0369a1;
+    }
+
+    .copy-btn.copied {
+      background: #16a34a !important;
+    }
+
+    .snippet-content-container {
+      padding: 16px;
+      background: #090d16;
+      overflow-x: auto;
+    }
+
+    /* PRE TAG OPTIMIZED FOR NOTEPAD */
+    pre.notepad-optimized {
+      margin: 0;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.5;
+      white-space: pre-wrap; /* Keeps newlines & preserves spaces */
+      word-break: break-word;
+      user-select: text;
+    }
+
+    /* Empty state / Loading state */
+    .secret-empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #64748b;
+    }
+    .secret-empty-state h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #94a3b8;
+    }
+
+    /* ==========================================================================
+       MODAL CONFIGURACIÓN GIST
+       ========================================================================== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 550px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-desc {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .modal-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 12px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: #38bdf8;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       FACHADA NORMAL (MONITOR DE LATENCIA DE RED CORPORATIVO)
+       ========================================================================== -->
+  <div id="corporate-facade">
+    <header class="corp-header">
+      <div class="corp-logo-area">
+        <svg class="corp-icon" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        <div>
+          <div class="corp-title">Global Network Diagnostic Console v4.8.2</div>
+          <div class="corp-subtitle">Internal IT Infrastructure Monitor & Dynamic Latency Tracer</div>
+        </div>
+      </div>
+      <div class="corp-status-badge">
+        <span class="status-dot"></span>
+        SYSTEM OPERATIONAL (18 ms)
+      </div>
+    </header>
+
+    <div class="corp-container">
+      <!-- Left Panel: System Details -->
+      <aside>
+        <div class="corp-card">
+          <div class="corp-card-title">
+            Node Status
+            <span style="color:#059669; font-size:11px;">ACTIVE</span>
+          </div>
+          <div class="corp-meta-item">
+            <span class="corp-meta-label">Primary Gateway:</span>
+            <span class="corp-meta-val">10.240.12.1</span>
+          </div>
+          <div class="corp-meta-item">
+            <span class="corp-meta-label">Subnet Mask:</span>
+            <span class="corp-meta-val">255.255.240.0</span>
+          </div>
+          <div class="corp-meta-item">
+            <span class="corp-meta-label">Active Region:</span>
+            <span class="corp-meta-val">US-EAST-DC4</span>
+          </div>
+          <div class="corp-meta-item">
+            <span class="corp-meta-label">Packet Loss:</span>
+            <span class="corp-meta-val" style="color:#16a34a;">0.00%</span>
+          </div>
+          <div class="corp-meta-item">
+            <span class="corp-meta-label">Jitter:</span>
+            <span class="corp-meta-val">1.2 ms</span>
+          </div>
+          <div class="corp-meta-item">
+            <span class="corp-meta-label">Worker Session:</span>
+            <span class="corp-meta-val">#8492-SEC</span>
+          </div>
+        </div>
+
+        <div class="corp-card">
+          <div class="corp-card-title">Quick Actions</div>
+          <button class="corp-btn" style="width:100%; margin-bottom:8px;">Run Full Ping Trace</button>
+          <button class="corp-btn" style="width:100%; margin-bottom:8px;">Flush DNS Cache</button>
+          <button class="corp-btn" style="width:100%;">Export Diagnostics Log</button>
+        </div>
+      </aside>
+
+      <!-- Right Main: Live Latency Graph & Logs -->
+      <main>
+        <div class="corp-card">
+          <div class="corp-card-title">
+            Real-Time Node Latency (ms)
+            <span style="font-size:11px; font-weight:normal; color:#64748b;">Interval: 1000ms</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="latencyCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="corp-card">
+          <div class="corp-card-title">
+            System Diagnostics Audit Log
+            <span style="font-weight:normal; color:#94a3b8; font-size:11px;" id="log-count-span">Streaming...</span>
+          </div>
+          
+          <div class="corp-controls">
+            <input type="text" class="corp-input" placeholder="Filter log entries..." id="logSearchInput">
+            <button class="corp-btn">Clear View</button>
+            <button class="corp-btn">Pause Stream</button>
+          </div>
+
+          <div style="max-height: 320px; overflow-y: auto;">
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th style="width:110px;">Timestamp</th>
+                  <th style="width:70px;">Level</th>
+                  <th style="width:130px;">Source Node</th>
+                  <th>Message / Trace Event</th>
+                </tr>
+              </thead>
+              <tbody id="corpLogsBody">
+                <!-- Dynamically populated by JS to look active -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Subtle Stealth Hint (Optional visual trigger for mouse users) -->
+    <div class="stealth-hint" id="stealthClickTrigger" title="Internal System Ref #9482">
+      SysID: 0x8F92A • Press ESC to return
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       2. LA BIBLIOTECA OCULTA (MODO SECRETO / DARK MODE)
+       ========================================================================== -->
+  <div id="secret-library">
+    <div class="secret-layout">
+      
+      <!-- Sidebar -->
+      <aside class="secret-sidebar">
+        <div class="secret-header">
+          <div class="secret-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            STEALTH NOTES
+          </div>
+          <button class="panic-badge" id="btnPanic" title="Pánico rápido (Volver a fachada)">ESC: Salir</button>
+        </div>
+
+        <div class="secret-search-box">
+          <input type="text" class="secret-search-input" id="secretSearchInput" placeholder="🔍 Buscar apunte o script...">
+        </div>
+
+        <ul class="secret-nav-list" id="categoryNavList">
+          <!-- Categorías cargadas dinámicamente -->
+        </ul>
+
+        <div class="secret-sidebar-footer">
+          <div>Estado: <span id="gistStatusText" style="color:#10b981;">Datos cargados</span></div>
+          <a class="gist-status-link" id="btnOpenGistModal">⚙️ Configurar URL de Gist</a>
+        </div>
+      </aside>
+
+      <!-- Main Workspace -->
+      <main class="secret-main">
+        <div class="secret-topbar">
+          <div class="current-category-name" id="currentCategoryTitle">Cargando apuntes...</div>
+          <div class="topbar-actions">
+            <button class="action-btn" id="btnSyncGist">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              Sincronizar Gist
+            </button>
+          </div>
+        </div>
+
+        <div class="secret-content-body" id="snippetsContainer">
+          <!-- Bloques de apuntes insertados dinámicamente -->
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       MODAL DE CONFIGURACIÓN DE URL DEL GIST
+       ========================================================================== -->
+  <div class="modal-overlay" id="gistModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>Conectar Base de Datos (GitHub Gist)</span>
+        <span style="cursor:pointer; color:#94a3b8;" id="btnCloseModal">&times;</span>
+      </div>
+      <div class="modal-desc">
+        Ingresa la URL pública o <b>RAW URL</b> de tu GitHub Gist o JSON público. Al actualizar ese Gist en GitHub desde tu casa, se actualizarán tus apuntes aquí automáticamente.
+      </div>
+      
+      <label class="modal-label" for="gistUrlInput">URL del Gist (JSON Raw):</label>
+      <input type="url" class="modal-input" id="gistUrlInput" placeholder="https://gist.githubusercontent.com/usuario/id/raw/apuntes.json">
+
+      <div class="modal-footer">
+        <button class="action-btn" id="btnResetDefaultGist">Usar Datos Locales de Ejemplo</button>
+        <button class="action-btn action-btn-primary" id="btnSaveGistUrl">Guardar y Sincronizar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================
+       JAVASCRIPT LOGIC
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       CONFIGURACIÓN DE TU GITHUB GIST (EDITA ESTA URL SI DESEAS)
+       ==========================================================================
+       Puedes colocar aquí directamente la URL Raw de tu Gist de GitHub.
+       Ejemplo: 'https://gist.githubusercontent.com/tu-usuario/HASH_DEL_GIST/raw/apuntes.json'
+       Si se deja en blanco, la app intentará leer LocalStorage o usar los datos locales de ejemplo.
+    */
+    const DEFAULT_GIST_URL = ""; 
+
+    /* ==========================================================================
+       CLAVE SECRETA DE ACTIVACIÓN
+       ==========================================================================
+       Puedes activar el modo biblioteca escribiendo esta palabra en el teclado
+       o utilizando el atajo Ctrl + Shift + X.
+    */
+    const SECRET_TRIGGER_WORD = "open123";
+    let typedBuffer = "";
+
+    /* ==========================================================================
+       DATOS LOCALES DE RESPALDO (MOCK DATA EN CASO DE SIN CONEXIÓN)
+       ========================================================================== */
+    const FALLBACK_NOTES_DATA = {
+      "title": "Biblioteca de Apuntes Sigilosa",
+      "updatedAt": "2026-08-17",
+      "categories": [
+        {
+          "id": "scripts-callcenter",
+          "name": "📞 Scripts de Atención",
+          "items": [
+            {
+              "title": "Script de Bienvenida y Verificación",
+              "content": "Gracias por comunicarse con el Centro de Atención Especializada. Mi nombre es [Tu Nombre].\n\n¿Con quién tengo el gusto de hablar el día de hoy?\nPara validar su cuenta, por favor permítame confirmar los siguientes datos:\n1. Nombre completo del titular.\n2. Número de identificación / contrato.\n3. Correo electrónico registrado."
+            },
+            {
+              "title": "Manejo de Cliente Molesto / Desescalación",
+              "content": "Comprendo perfectamente su frustración respecto a la falla detectada en su servicio, y le ofrezco una disculpa a nombre de la empresa.\n\nTenga la seguridad de que voy a tomar el control de su caso personalmente en este momento para resolverlo en el menor tiempo posible."
+            },
+            {
+              "title": "Script de Cierre de Llamada",
+              "content": "He completado el registro de su folio de atención: #[NÚMERO_FOLIO].\n\n¿Existe alguna otra duda o consulta adicional en la que le pueda asistir el día de hoy?\n\nLe agradezco su tiempo. Que tenga un excelente día."
+            }
+          ]
+        },
+        {
+          "id": "preguntas-frecuentes",
+          "name": "❓ Preguntas Frecuentes & Objeciones",
+          "items": [
+            {
+              "title": "Objeción: 'El servicio está muy costoso'",
+              "content": "Entiendo su postura respecto a la tarifa. Sin embargo, este paquete incluye la garantía de velocidad simétrica y asistencia técnica 24/7 sin costo adicional.\n\nAdicionalmente, puedo verificar en el sistema si aplica un descuento especial del 15% por fidelidad."
+            },
+            {
+              "title": "Consulta sobre Tiempos de Reparación",
+              "content": "Nuestros compromisos de Nivel de Servicio (SLA) para soporte residencial son de un máximo de 24 a 48 horas hábiles.\nPara cuentas empresariales, la atención técnica en sitio es menor a 4 horas."
+            }
+          ]
+        },
+        {
+          "id": "comandos-rapidos",
+          "name": "⚡ Plantillas & Respuestas Rápidas",
+          "items": [
+            {
+              "title": "Plantilla de Correo de Escalación a Nivel 2",
+              "content": "ASUNTO: [Escalación N2] - Cliente: [NOMBRE] - Folio: [NUMERO]\n\nEstimado equipo de Nivel 2,\n\nSe escala el caso del cliente debido a la siguiente incidencia recurrente:\n- Descripción breve del problema: \n- Pruebas realizadas en Nivel 1: Reset de puerto, verificación de parámetros de línea.\n- Resultado: Falla persiste.\n\nQuedamos a la espera de sus comentarios."
+            },
+            {
+              "title": "Notas de Bitácora Estándar",
+              "content": "FECHA/HORA: 2026-08-17\nAGENTE ID: #8492\nTIPO DE CONTACTO: Entrante\nMOTIVO: Consulta de saldo y facturación\nRESOLUCIÓN: Se explica desglose de cargos del mes en curso. Cliente conforme."
+            }
+          ]
+        }
+      ]
+    };
+
+    /* ==========================================================================
+       ESTADO DE LA APLICACIÓN
+       ========================================================================== */
+    let currentData = FALLBACK_NOTES_DATA;
+    let selectedCategoryId = "";
+    let isSecretMode = false;
+
+    // DOM Elements
+    const facadeEl = document.getElementById("corporate-facade");
+    const secretEl = document.getElementById("secret-library");
+    const categoryNavList = document.getElementById("categoryNavList");
+    const currentCategoryTitle = document.getElementById("currentCategoryTitle");
+    const snippetsContainer = document.getElementById("snippetsContainer");
+    const secretSearchInput = document.getElementById("secretSearchInput");
+    const gistStatusText = document.getElementById("gistStatusText");
+
+    // Modal Elements
+    const gistModal = document.getElementById("gistModal");
+    const gistUrlInput = document.getElementById("gistUrlInput");
+    const btnOpenGistModal = document.getElementById("btnOpenGistModal");
+    const btnCloseModal = document.getElementById("btnCloseModal");
+    const btnSaveGistUrl = document.getElementById("btnSaveGistUrl");
+    const btnResetDefaultGist = document.getElementById("btnResetDefaultGist");
+    const btnSyncGist = document.getElementById("btnSyncGist");
+    const btnPanic = document.getElementById("btnPanic");
+    const stealthClickTrigger = document.getElementById("stealthClickTrigger");
+
+    /* ==========================================================================
+       1. LÓGICA DEL DISPARADOR SECRETO (KEYBOARD & ESCAPE PANIC)
+       ========================================================================== */
+    window.addEventListener("keydown", (e) => {
+      // PANIC BUTTON: Presionar ESC conmuta inmediatamente a la fachada corporativa
+      if (e.key === "Escape") {
+        hideSecretLibrary();
+        return;
+      }
+
+      // COMBINACIÓN SECRETA 1: Ctrl + Shift + X
+      if (e.ctrlKey && e.shiftKey && (e.key === "X" || e.key === "x")) {
+        e.preventDefault();
+        showSecretLibrary();
+        return;
+      }
+
+      // COMBINACIÓN SECRETA 2: Teclear la palabra clave (ej. "open123")
+      if (e.key.length === 1) { // Solo caracteres visibles
+        typedBuffer += e.key.toLowerCase();
+        if (typedBuffer.length > 20) {
+          typedBuffer = typedBuffer.substring(typedBuffer.length - 20);
+        }
+        
+        if (typedBuffer.endsWith(SECRET_TRIGGER_WORD.toLowerCase())) {
+          typedBuffer = "";
+          showSecretLibrary();
+        }
+      }
+    });
+
+    // Stealth Click Trigger (Triple-click on footer hint in normal mode)
+    let clickCount = 0;
+    let clickTimer = null;
+    stealthClickTrigger.addEventListener("click", () => {
+      clickCount++;
+      if (clickCount === 3) {
+        clickCount = 0;
+        showSecretLibrary();
+      } else {
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+      }
+    });
+
+    btnPanic.addEventListener("click", hideSecretLibrary);
+
+    function showSecretLibrary() {
+      isSecretMode = true;
+      facadeEl.style.display = "none";
+      secretEl.style.display = "block";
+      document.title = "Stealth Library - Monospace Reader";
+      // Auto-load active data
+      initLibrary();
+    }
+
+    function hideSecretLibrary() {
+      isSecretMode = false;
+      secretEl.style.display = "none";
+      facadeEl.style.display = "block";
+      document.title = "Console Diagnostics - Internal Network Latency Monitor v4.8";
+      typedBuffer = "";
+    }
+
+    /* ==========================================================================
+       2. CARGA DE DATOS & FETCH DEL GIST
+       ========================================================================== */
+    function getActiveGistUrl() {
+      return localStorage.getItem("STEALTH_GIST_URL") || DEFAULT_GIST_URL;
+    }
+
+    async function fetchGistData() {
+      const url = getActiveGistUrl();
+      if (!url) {
+        gistStatusText.textContent = "Usando datos locales";
+        gistStatusText.style.color = "#94a3b8";
+        return FALLBACK_NOTES_DATA;
+      }
+
+      try {
+        gistStatusText.textContent = "Sincronizando Gist...";
+        gistStatusText.style.color = "#38bdf8";
+
+        const response = await fetch(url, { cache: "no-cache" });
+        if (!response.ok) {
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        gistStatusText.textContent = "Sincronizado";
+        gistStatusText.style.color = "#10b981";
+        return data;
+      } catch (err) {
+        console.error("Error al cargar Gist:", err);
+        gistStatusText.textContent = "Error de conexión (Usando Local)";
+        gistStatusText.style.color = "#f87171";
+        return FALLBACK_NOTES_DATA;
+      }
+    }
+
+    async function initLibrary() {
+      currentData = await fetchGistData();
+      
+      if (!currentData.categories || currentData.categories.length === 0) {
+        currentData = FALLBACK_NOTES_DATA;
+      }
+
+      if (!selectedCategoryId && currentData.categories.length > 0) {
+        selectedCategoryId = currentData.categories[0].id;
+      }
+
+      renderSidebarNav();
+      renderContent();
+    }
+
+    /* ==========================================================================
+       3. RENDERIZADO DE INTERFAZ DE LA BIBLIOTECA
+       ========================================================================== */
+    function renderSidebarNav() {
+      categoryNavList.innerHTML = "";
+      const searchTerm = secretSearchInput.value.toLowerCase().trim();
+
+      currentData.categories.forEach(cat => {
+        // Compute item count or matching item count
+        const matchingItems = cat.items.filter(item => {
+          if (!searchTerm) return true;
+          return item.title.toLowerCase().includes(searchTerm) || 
+                 item.content.toLowerCase().includes(searchTerm);
+        });
+
+        if (searchTerm && matchingItems.length === 0) return;
+
+        const li = document.createElement("li");
+        li.className = `secret-nav-item ${cat.id === selectedCategoryId ? "active" : ""}`;
+        li.innerHTML = `
+          <span>${cat.name}</span>
+          <span class="item-count-badge">${matchingItems.length}</span>
+        `;
+
+        li.addEventListener("click", () => {
+          selectedCategoryId = cat.id;
+          renderSidebarNav();
+          renderContent();
+        });
+
+        categoryNavList.appendChild(li);
+      });
+    }
+
+    function renderContent() {
+      snippetsContainer.innerHTML = "";
+      const activeCat = currentData.categories.find(c => c.id === selectedCategoryId);
+      const searchTerm = secretSearchInput.value.toLowerCase().trim();
+
+      if (!activeCat) {
+        currentCategoryTitle.textContent = "Selecciona una categoría";
+        snippetsContainer.innerHTML = `
+          <div class="secret-empty-state">
+            <h3>No hay categoría seleccionada</h3>
+            <p>Selecciona un tema en el menú lateral.</p>
+          </div>`;
+        return;
+      }
+
+      currentCategoryTitle.textContent = activeCat.name;
+
+      const filteredItems = activeCat.items.filter(item => {
+        if (!searchTerm) return true;
+        return item.title.toLowerCase().includes(searchTerm) || 
+               item.content.toLowerCase().includes(searchTerm);
+      });
+
+      if (filteredItems.length === 0) {
+        snippetsContainer.innerHTML = `
+          <div class="secret-empty-state">
+            <h3>Sin resultados de búsqueda</h3>
+            <p>No se encontraron coincidencias para "${escapeHtml(searchTerm)}".</p>
+          </div>`;
+        return;
+      }
+
+      filteredItems.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "snippet-card";
+
+        card.innerHTML = `
+          <div class="snippet-card-header">
+            <span class="snippet-title">${escapeHtml(item.title)}</span>
+            <button class="copy-btn" data-index="${index}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copiar para Bloc de Notas
+            </button>
+          </div>
+          <div class="snippet-content-container">
+            <pre class="notepad-optimized" id="snippet-text-${index}">${escapeHtml(item.content)}</pre>
+          </div>
+        `;
+
+        // Event listener de copiar
+        const copyBtn = card.querySelector(".copy-btn");
+        copyBtn.addEventListener("click", () => {
+          copyToNotepadFormat(item.content, copyBtn);
+        });
+
+        snippetsContainer.appendChild(card);
+      });
+    }
+
+    /* ==========================================================================
+       4. COPIAR AL PORTAPAPELES (NOTEPAD COMPATIBLE)
+       ========================================================================== */
+    function copyToNotepadFormat(text, btnElement) {
+      // Normaliza los saltos de línea a formato Windows CRLF (\r\n) para legibilidad perfecta en Notepad
+      const notepadFormattedText = text.replace(/\r?\n/g, "\r\n");
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(notepadFormattedText).then(() => {
+          showCopySuccess(btnElement);
+        }).catch(err => {
+          fallbackCopyText(notepadFormattedText, btnElement);
+        });
+      } else {
+        fallbackCopyText(notepadFormattedText, btnElement);
+      }
+    }
+
+    function fallbackCopyText(text, btnElement) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showCopySuccess(btnElement);
+      } catch (err) {
+        alert("Error al copiar texto al portapapeles.");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showCopySuccess(btnElement) {
+      const originalHTML = btnElement.innerHTML;
+      btnElement.classList.add("copied");
+      btnElement.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        ¡Copiado!
+      `;
+
+      setTimeout(() => {
+        btnElement.classList.remove("copied");
+        btnElement.innerHTML = originalHTML;
+      }, 1800);
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    /* ==========================================================================
+       5. MODAL DE CONFIGURACIÓN & EVENTOS
+       ========================================================================== */
+    btnOpenGistModal.addEventListener("click", () => {
+      gistUrlInput.value = getActiveGistUrl();
+      gistModal.classList.add("active");
+    });
+
+    btnCloseModal.addEventListener("click", () => {
+      gistModal.classList.remove("active");
+    });
+
+    btnSaveGistUrl.addEventListener("click", async () => {
+      const url = gistUrlInput.value.trim();
+      if (url) {
+        localStorage.setItem("STEALTH_GIST_URL", url);
+      } else {
+        localStorage.removeItem("STEALTH_GIST_URL");
+      }
+      gistModal.classList.remove("active");
+      await initLibrary();
+    });
+
+    btnResetDefaultGist.addEventListener("click", async () => {
+      localStorage.removeItem("STEALTH_GIST_URL");
+      gistUrlInput.value = "";
+      gistModal.classList.remove("active");
+      await initLibrary();
+    });
+
+    btnSyncGist.addEventListener("click", async () => {
+      await initLibrary();
+    });
+
+    secretSearchInput.addEventListener("input", () => {
+      renderSidebarNav();
+      renderContent();
+    });
+
+
+    /* ==========================================================================
+       6. SIMULACIÓN DE LA FACHADA CORPORATIVA (LATENCY CHART & LOG STREAM)
+       ========================================================================== */
+    const canvas = document.getElementById("latencyCanvas");
+    const ctx = canvas.getContext("2d");
+    let pingHistory = Array(60).fill(18);
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function updateChart() {
+      if (!isSecretMode && canvas.width > 0) {
+        // Generate realistic ping fluctuation
+        const lastPing = pingHistory[pingHistory.length - 1];
+        const variation = (Math.random() - 0.5) * 4;
+        let newPing = Math.min(Math.max(Math.round(lastPing + variation), 12), 42);
+        pingHistory.push(newPing);
+        pingHistory.shift();
+
+        // Draw graph
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Grid lines
+        ctx.strokeStyle = "#1e293b";
+        ctx.lineWidth = 1;
+        for (let y = 30; y < canvas.height; y += 30) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        // Plot line
+        ctx.beginPath();
+        const step = canvas.width / (pingHistory.length - 1);
+        pingHistory.forEach((val, i) => {
+          const x = i * step;
+          // Scale val (10ms-50ms) to canvas height
+          const y = canvas.height - ((val - 5) / 50) * canvas.height;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Gradient fill below line
+        ctx.lineTo(canvas.width, canvas.height);
+        ctx.lineTo(0, canvas.height);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, "rgba(56, 189, 248, 0.25)");
+        grad.addColorStop(1, "rgba(56, 189, 248, 0.0)");
+        ctx.fillStyle = grad;
+        ctx.fill();
+      }
+    }
+    setInterval(updateChart, 1000);
+
+    // Corporate Simulated Log Stream
+    const corpLogsBody = document.getElementById("corpLogsBody");
+    const logCountSpan = document.getElementById("log-count-span");
+    let logCounter = 104;
+
+    const sampleNodes = ["us-east-dc4", "eu-west-dc1", "ap-south-gateway", "edge-router-09", "auth-cluster-02"];
+    const sampleEvents = [
+      "TCP handshake packet ACK received in 16ms",
+      "BGP route table refresh cycle completed",
+      "KeepAlive pulse sent to peer router #12",
+      "DNS query response time: 4.2ms OK",
+      "TLS 1.3 session re-negotiation verified",
+      "ICMP ping node-7 response 18ms ok"
+    ];
+
+    function appendCorpLog() {
+      if (isSecretMode) return;
+      logCounter++;
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+      const node = sampleNodes[Math.floor(Math.random() * sampleNodes.length)];
+      const eventMsg = sampleEvents[Math.floor(Math.random() * sampleEvents.length)];
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="log-time">${timeStr}</td>
+        <td class="log-level-info">INFO</td>
+        <td class="log-node">${node}</td>
+        <td>${eventMsg}</td>
+      `;
+
+      corpLogsBody.insertBefore(tr, corpLogsBody.firstChild);
+      if (corpLogsBody.children.length > 25) {
+        corpLogsBody.removeChild(corpLogsBody.lastChild);
+      }
+      logCountSpan.textContent = `Streaming (${logCounter} events)`;
+    }
+
+    // Initial logs fill
+    for (let i = 0; i < 8; i++) {
+      appendCorpLog();
+    }
+    setInterval(appendCorpLog, 2500);
+
+    // Filter logs search in corporate mode
+    document.getElementById("logSearchInput").addEventListener("input", (e) => {
+      const term = e.target.value.toLowerCase();
+      Array.from(corpLogsBody.children).forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(term) ? "" : "none";
+      });
+    });
+
+  </script>
+</body>
+</html>
