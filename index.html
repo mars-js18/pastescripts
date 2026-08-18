@@ -90,6 +90,7 @@
       color: #10b981;
     }
 
+    /* Estilo de teclas KBD */
     kbd {
       background-color: var(--f-kbd-bg);
       border: 1px solid var(--f-kbd-border);
@@ -573,24 +574,19 @@
       overflow-y: auto;
     }
 
-    /* Visor Web Iframe Sigiloso (CON FILTRO MODO OSCURO AUTOMÁTICO) */
+    /* Visor Web Iframe Sigiloso */
     .s-iframe-container {
       flex: 1;
       width: 100%;
       height: 100%;
-      background: #0d1117;
+      background: #ffffff;
       border: none;
-      position: relative;
     }
 
     .s-iframe-elem {
       width: 100%;
       height: 100%;
       border: none;
-      background-color: #0d1117;
-      /* Inversión inteligente de color para convertir cualquier web blanca en Dark Mode */
-      filter: invert(0.92) hue-rotate(180deg) contrast(0.95);
-      transition: filter 0.2s ease;
     }
 
     .s-snippet-card {
@@ -814,7 +810,7 @@
 
       <!-- Selector de Modo: Visor Web de Libro vs Apuntes/Notepad -->
       <div class="s-view-tabs">
-        <button class="s-tab-btn active" id="tab-btn-book">📖 Think Java 2e (Dark Web)</button>
+        <button class="s-tab-btn active" id="tab-btn-book">📖 Think Java 2e (Web)</button>
         <button class="s-tab-btn" id="tab-btn-notes">📝 Mis Apuntes (Notepad)</button>
       </div>
 
@@ -832,7 +828,7 @@
       </div>
     </header>
 
-    <!-- Contenido en Modo Visor Web Iframe (Think Java 2e en MODO OSCURO) -->
+    <!-- Contenido en Modo Visor Web Iframe (Think Java 2e) -->
     <div id="s-book-wrapper" class="s-body">
       <div class="s-iframe-container">
         <iframe id="s-book-iframe" class="s-iframe-elem" src="https://chrismayfield.github.io/ThinkJava2/"></iframe>
@@ -1126,7 +1122,9 @@
         stealthView.classList.remove('hidden');
         document.title = 'System Monitor';
 
+        // Asegurar que el iframe tenga la URL del libro
         sBookIframe.src = bookUrl;
+        
         fetchGistData();
       }
 
